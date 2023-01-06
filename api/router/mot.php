@@ -15,8 +15,8 @@ if (str_contains($_GET["q"], GET_NAME)) {
             break;
 
         case "mot":
-            if(!isset($_GET["id"]) && !is_int($_GET["id"])) {
-                NotFound();
+            if(!isset($_GET["id"]) || !is_numeric($_GET["id"])) {
+                NotFound("no id param specified");
                 break;
             }
             $motId = intval($_GET["id"]);

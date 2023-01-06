@@ -15,7 +15,7 @@ if (str_contains($_GET["q"], GET_NAME)) {
             break;
 
         case "trip":
-            if (!isset($_GET["id"]) && !is_int($_GET["id"])) {
+            if (!isset($_GET["id"]) || !is_numeric($_GET["id"])) {
                 NotFound("no id param specified");
                 break;
             }
@@ -29,7 +29,7 @@ if (str_contains($_GET["q"], GET_NAME)) {
             break;
 
         case "tripMots":
-            if (!isset($_GET["id"]) && !is_int($_GET["id"])) {
+            if (!isset($_GET["id"]) || !is_numeric($_GET["id"])) {
                 NotFound("no id param specified");
                 break;
             }
