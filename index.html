@@ -14,8 +14,8 @@
     <main class="container">
         <h2 class="text-center p-2">Scardi Query EdCivica</h2>
         <div id="liveAlertPlaceholder"></div>
-        <div class="row">
-            <div class="col-6">
+        <div class="row g-sm-2">
+            <div class="col-md-6 col-sm-12 order-sm-1 order-md-0">
                 <div class="bg-primary rounded-1 p-3 h-100">
                     <h3 class="text-center">Query Eseguita</h3>
                     <div>
@@ -23,12 +23,12 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6">
+            <div class="col-md-6 col-sm-12 order-sm-0 order-md-1">
                 <div class="bg-secondary rounded-1 p-3">
                     <h3 class="text-center">Compara mezzi di trasporto</h3>
                     <div class="row">
                         <div class="col-5">
-                            <select class="form-select" size="5" id="selL">
+                            <select class="form-select" size="7" id="selL">
                                 <option selected>Choose...</option>
                                 <option value="1">One</option>
                                 <option value="2">Two</option>
@@ -37,7 +37,7 @@
                         </div>
                         <div class="col-2"><div class="text-center">VS</div></div>
                         <div class="col-5">
-                            <select class="form-select" size="5" id="selR">
+                            <select class="form-select" size="7" id="selR">
                                 <option selected>Choose...</option>
                                 <option value="1">One</option>
                                 <option value="2">Two</option>
@@ -53,26 +53,27 @@
             <div>
                 <h2 class="text-center">Confronto tra <span>car1</span> VS <span>car2</span></h2>
                 <div class="row">
-                    <div class="col-6 row">
+                    <div class="col-md-6 col-sm-12 row">
                         <div class="col-6">
-                            <ul>
-                            <li>Abc</li>
-                            <li>Def</li>
-                            <li>Ghi</li>
-                            <li>Lmn</li>
+                            <ul id="listDataMotL">
+                                <li>Abc</li>
+                                <li>Def</li>
+                                <li>Ghi</li>
+                                <li>Lmn</li>
                             </ul>
                         </div>
                         <div class="col-6">                            
-                            <img src="https://www.smecsrl.it/wp-content/uploads/2022/12/Fiat-Tipo-1200x675.jpg" class="img-fluid float-end" alt="...">
+                            <img src="https://www.smecsrl.it/wp-content/uploads/2022/12/Fiat-Tipo-1200x675.jpg" class="img-fluid float-end"
+                                alt="..." id="imgMotL">
                         </div>
                     </div>
-                    <div class="col-6 row">
+                    <div class="col-md-6 col-sm-12 row">
                         <div class="col-6">
                             <img src="https://www.smecsrl.it/wp-content/uploads/2022/12/citroen-c5-aircross-1200x675.jpg" class="img-fluid float-start"
-                                alt="...">
+                                alt="..." id="imgMotR">
                         </div>
                         <div class="col-6">
-                            <ul>
+                            <ul id="listDataMotR">
                                 <li>Abc</li>
                                 <li>Def</li>
                                 <li>Ghi</li>
@@ -86,8 +87,8 @@
 
         <hr>
 
-        <div class="row">
-            <div class="col-6">
+        <div class="row g-sm-2">
+            <div class="col-md-6 col-sm-12">
                 <div class="bg-success rounded-1 p-3">
                     <h3 class="text-center">Crea Viaggio</h3>
                     <div class="mb-3">
@@ -95,29 +96,34 @@
                             <label for="nameTrip" class="form-label">Nome</label>
                             <input type="text" class="form-control" id="nameTrip" placeholder="Casa - Lavoro - Casa">
                         </div>
-                        <div class="mb-3">
-                            <div class="row">
-                                <div class="col-md-9 col-sm-12">
-                                    <label class="form-label" for="motUsed">Mezzo</label>
-                                    <select class="form-select trip-mots">
-                                        <option selected>Choose...</option>
-                                        <option value="1">One</option>
-                                        <option value="2">Two</option>
-                                        <option value="3">Three</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3 col-sm-12">
-                                    <label for="kmTraveled" class="form-label">KM</label>
-                                    <input type="number" min="1" class="form-control trip-mots-km" id="kmTraveled">
+                        <div class="mb-3 border border-1 border-white rounded-2 p-2">
+                            <div id="tripMotsContainer">
+                                <div class="row row-cols-auto align-items-end">
+                                    <div class="col-md-7 col-sm-12" selnum="0">
+                                        <label class="form-label" for="motUsed">Mezzo</label>
+                                        <select class="form-select trip-mots">
+                                            <option selected>Choose...</option>
+                                            <option value="1">One</option>
+                                            <option value="2">Two</option>
+                                            <option value="3">Three</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 col-sm-6">
+                                        <label for="kmTraveled" class="form-label">KM</label>
+                                        <input type="number" min="1" class="form-control trip-mots-km">
+                                    </div>
+                                    <div class="col-md-2 col-sm-6 top-0">
+                                        <button type="button" class="btn btn-danger">X</button>
+                                    </div>
                                 </div>
                             </div>
+                            <div class="text-center m-auto mt-2"><button type="button" class="btn btn-warning" id="btnAddTripMot">+</button></div>
                         </div>
-                        <div class="text-center m-auto"><button type="button" class="btn btn-warning">+</button></div>
                     </div>
                     <div class="text-center m-auto"><button type="button" class="btn btn-primary">Aggiungi Viaggio</button></div>
                 </div>
             </div>
-            <div class="col-6">
+            <div class="col-md-6 col-sm-12">
                 <div class="bg-primary rounded-1 p-3 h-100">
                     <h3 class="text-center">Query Eseguita</h3>
                     <div>
