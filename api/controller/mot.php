@@ -15,7 +15,7 @@ function getNamesList(mysqli $db)
 
 function getMOT(mysqli $db, int $motId)
 {
-    $stmt = $db->prepare("SELECT name, img_url, g_co2_km, taxes, fuel, fuel_consumption_unit, kilometer_per_unit, subscription
+    $stmt = $db->prepare("SELECT name, img_url, g_co2_km, taxes, fuel, fuel_consumption_unit, kilometer_per_unit, subscription, ticket
                             FROM queryProject.mot m
                                JOIN queryProject.emissions e ON m.id = e.id_mot
                                JOIN queryProject.costs c ON m.id = c.id_mot
@@ -36,6 +36,7 @@ function getMOT(mysqli $db, int $motId)
         $jsonWrapper->fuelConsumptionUnit = $res["fuel_consumption_unit"];
         $jsonWrapper->kilometerPerUnit = $res["kilometer_per_unit"];
         $jsonWrapper->subscription = $res["subscription"];
+        $jsonWrapper->ticket = $res["ticket"];
     
         return json_encode($jsonWrapper);
     }
