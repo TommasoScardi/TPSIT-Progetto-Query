@@ -4,3 +4,24 @@ body {
     background-attachment: fixed;
     background-size: cover;
 }
+
+@keyframes alertAnim {
+    0% {
+        opacity: 0.5;
+    }
+    25% {
+        opacity: 1;
+    }
+    70% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+.alert {
+    animation-name: alertAnim;
+    animation-duration: 10s;
+    animation-fill-mode: forwards;
+}
