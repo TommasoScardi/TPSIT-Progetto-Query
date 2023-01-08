@@ -12,6 +12,7 @@ const DOM_IDS = {
     tripMotsContainer: "#tripMotsContainer",
     btnAddTripMot: "#btnAddTripMot",
     btnDeleteTripMot: "#tripBtn-",
+    btnDeleteTripMots: ".btn-delete-trip",
     tripMotContainer: "#trip-mots-row-",
     inputTripName: "#nameTrip",
     selectTripMots: ".trip-mots",
@@ -244,15 +245,14 @@ function createTripMot() {
                                     </div>
                                     <div class="col-md-3 col-sm-6">
                                         <label for="kmTraveled" class="form-label">KM</label>
-                                        <input type="number" min="1" class="form-control trip-mots-km">
+                                        <input type="number" min="1" class="form-control trip-mots-km" value="1">
                                     </div>
                                     <div class="col-md-2 col-sm-6 top-0">
-                                        <button type="button" class="btn btn-danger" id="tripBtn-${bData.selNum}" value="${bData.selNum}">X</button>
+                                        <button type="button" class="btn btn-danger btn-delete-trip" id="tripBtn-${bData.selNum}" value="${bData.selNum}">X</button>
                                     </div>
                                 </div>`;
     $(DOM_IDS.tripMotsContainer).append(selTripMotTemplate);
     $(DOM_IDS.btnDeleteTripMot + bData.selNum).on("click", deleteTripMot);
-    
     fillTripMotSelect(bData.listMots, bData.selNum);
     bData.selNum++;
 }
@@ -263,17 +263,72 @@ function deleteTripMot(e) {
     $(DOM_IDS.tripMotContainer + e.target.value).remove();
 }
 
+function resetTripTab() {
+    $(DOM_IDS.inputTripName).val("");
+    $(DOM_IDS.btnDeleteTripMots).each(function(i, elem) {
+        $(elem).trigger("click");
+    });
+    bData.selNum = 0;
+    createTripMot();
+}
+
 function addTrip() {
+    let error = {
+        state: false,
+        message: []
+    };
     let trip = {
         name: $(DOM_IDS.inputTripName).val(),
-        ids: [],
-        km:[]
+        mots: []
     };
     $(DOM_IDS.selectTripMots).each(function (i, el) {
-        trip.ids.push(el.value) 
+        let idVal = parseInt(el.value);
+        if (!isNaN(idVal)) {
+            let kmVal = parseInt($(DOM_IDS.inputTripMotsKm).eq(i).val());
+            if (!isNaN(kmVal) && kmVal > 0) {
+                let id_km = [idVal, kmVal];
+                trip.mots.push(id_km);
+            }
+            else {
+                error.state = true;
+                error.message.push("Insert a valid KM number");
+            }
+        }
+        else {
+            error.state = true;
+            error.message.push("Select a mot from the trip window");
+        }
     });
-    $(DOM_IDS.inputTripMotsKm).each(function (i, el) { trip.km.push(el.value) });
+    if(error.state) {
+        error.message.forEach(function(value) {
+            btAlert(value, "danger");
+        });
+        return;
+    }
     if(DEBUG) console.log(trip);
+
+    let options = { ...AJAX_DEF_OPT };
+    options.method = "POST";
+    options.contentType = "application/json";
+    options.url += "Trip-create";
+    options.data = JSON.stringify(trip);
+    console.log(options );
+
+    $.ajax(options)
+        .done(function (data, textStatus, jqXHR) {
+            let jsonData = JSON.parse(data);
+            if (jsonData == undefined) return;
+            if (DEBUG) console.log(jsonData);
+
+            resetTripTab();
+            btAlert(jsonData.message, "success");
+        })
+        .fail(function (jqXHR, textStatus, errorThrown) {
+            if (DEBUG) console.log(jqXHR, "\n\n", textStatus, "\n\n", errorThrown);
+            let errMsg = JSON.parse(jqXHR.responseText);
+            if (errMsg == undefined) return;
+            btAlert(errMsg.message, "danger");
+        });
 }
 
 //TODO: manca l'AJAX in POST richiamato dal pulsande aggiungi viaggio
