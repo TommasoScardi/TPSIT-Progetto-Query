@@ -55,33 +55,32 @@
 
         <div class="bg-danger bg-gradient rounded-1 mt-2 p-3">
             <div>
-                <h2 class="text-center">Confronto tra <span>car1</span> VS <span>car2</span></h2>
-                <div class="row">
+                <h2 class="text-center"><span id="motNameL"></span> VS <span id="motNameR"></span></h2>
+                <div class="row gap-sm-3">
                     <div class="col-md-6 col-sm-12 row">
                         <div class="col-6">
                             <ul id="listDataMotL">
-                                <li>Abc</li>
+                                <!-- <li>Abc</li>
                                 <li>Def</li>
                                 <li>Ghi</li>
-                                <li>Lmn</li>
+                                <li>Lmn</li> -->
                             </ul>
                         </div>
                         <div class="col-6">
-                            <img src="https://www.smecsrl.it/wp-content/uploads/2022/12/Fiat-Tipo-1200x675.jpg"
-                                class="img-fluid float-end" alt="..." id="imgMotL">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/HD_transparent_picture.png" class="img-fluid float-end rounded-2" alt="..." id="imgMotL">
                         </div>
+                        <!-- <hr class="w-50 text-warning m-auto my-2"> -->
                     </div>
                     <div class="col-md-6 col-sm-12 row">
                         <div class="col-6">
-                            <img src="https://www.smecsrl.it/wp-content/uploads/2022/12/citroen-c5-aircross-1200x675.jpg"
-                                class="img-fluid float-start" alt="..." id="imgMotR">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/HD_transparent_picture.png" class="img-fluid float-start rounded-2" alt="..." id="imgMotR">
                         </div>
                         <div class="col-6">
                             <ul id="listDataMotR">
-                                <li>Abc</li>
+                                <!-- <li>Abc</li>
                                 <li>Def</li>
                                 <li>Ghi</li>
-                                <li>Lmn</li>
+                                <li>Lmn</li> -->
                             </ul>
                         </div>
                     </div>
@@ -101,8 +100,8 @@
                             <input type="text" class="form-control" id="nameTrip" placeholder="Casa - Lavoro - Casa">
                         </div>
                         <div class="mb-3 border border-1 border-white rounded-2 p-2">
-                            <div id="tripMotsContainer">
-                                <div class="row row-cols-auto align-items-end">
+                            <div class="mb-3" id="tripMotsContainer">
+                                <!-- <div class="row row-cols-auto align-items-end">
                                     <div class="col-md-7 col-sm-12" selnum="0">
                                         <label class="form-label" for="motUsed">Mezzo</label>
                                         <select class="form-select trip-mots">
@@ -117,15 +116,15 @@
                                         <input type="number" min="1" class="form-control trip-mots-km">
                                     </div>
                                     <div class="col-md-2 col-sm-6 top-0">
-                                        <button type="button" class="btn btn-danger">X</button>
+                                        <button type="button" class="btn btn-danger" id="tripBtn-0">X</button>
                                     </div>
-                                </div>
+                                </div> -->
                             </div>
-                            <div class="text-center m-auto mt-2"><button type="button" class="btn btn-warning"
+                            <div class="text-center m-auto"><button type="button" class="btn btn-warning"
                                     id="btnAddTripMot">+</button></div>
                         </div>
                     </div>
-                    <div class="text-center m-auto"><button type="button" class="btn btn-primary">Aggiungi
+                    <div class="text-center m-auto"><button type="button" class="btn btn-primary" id="btnAddTrip">Aggiungi
                             Viaggio</button></div>
                 </div>
             </div>

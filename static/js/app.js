@@ -3,14 +3,20 @@ const REQ_URL = "http://localhost/Scardi_Tommaso_Query/api/";
 const DOM_IDS = {
     selLeft: "#selL",
     selRight: "#selR",
-    tripMots: ".trip-mots",
-    tripMotsKm: ".trip-mots-km",
+    spanVsNameL: "#motNameL",
+    spanVsNameR: "#motNameR",
     listDataMotL: "#listDataMotL",
     imgMotL: "#imgMotL",
     listDataMotR: "#listDataMotR",
     imgMotR: "#imgMotR",
     tripMotsContainer: "#tripMotsContainer",
     btnAddTripMot: "#btnAddTripMot",
+    btnDeleteTripMot: "#tripBtn-",
+    tripMotContainer: "#trip-mots-row-",
+    inputTripName: "#nameTrip",
+    selectTripMots: ".trip-mots",
+    inputTripMotsKm: ".trip-mots-km",
+    btnAddTrip: "#btnAddTrip"
 };
 const AJAX_DEF_OPT = {
     async: true,
@@ -28,17 +34,20 @@ let bData = {
     mots:[],
     listTrips: null,
     trips: [],
-    selNum: 1
+    selNum: 0
 };
 
 $(function () {
     getMotNamesList();
-
+    
     //Event binding
     $(DOM_IDS.selLeft).on("change", getMotsDetails);
     $(DOM_IDS.selRight).on("change", getMotsDetails);
-
+    
+    createTripMot();
     $(DOM_IDS.btnAddTripMot).on("click", createTripMot);
+
+    $(DOM_IDS.btnAddTrip).on("click", addTrip);
 });
 
 function getMotNamesList() {
@@ -72,7 +81,7 @@ function fillUiSelect(dataSelect) {
         text: "",
         selected: true
     }));
-    if (dataSelect === undefined) return;
+    if (dataSelect == undefined || dataSelect == null) return;
     dataSelect.forEach((value) => {
         $(DOM_IDS.selLeft).append(
             $("<option>", {
@@ -93,17 +102,17 @@ function fillTripMotSelect(dataSelect, selNum = NaN) {
     if (selNum == undefined) return;
     let queryString = "";
     if (isNaN(selNum)) {
-        queryString = DOM_IDS.tripMots;
+        queryString = DOM_IDS.selectTripMots;
     }
     else {
-        queryString = `[selnum=${selNum}] > ${DOM_IDS.tripMots}`
+        queryString = `[selnum=${selNum}] > ${DOM_IDS.selectTripMots}`
     }
 
     $(queryString).empty().append($('<option>', {
         text: "Scegli...",
         selected: true
     }));
-    if (dataSelect === undefined) return;
+    if (dataSelect == undefined || dataSelect == null) return;
     dataSelect.forEach((value) => {
         $(queryString).append(
             $("<option>", {
@@ -204,7 +213,13 @@ function writeCompareMotsData(dataComparison) {
                 $(dataComparison.first ? DOM_IDS.imgMotL : DOM_IDS.imgMotR).attr("src", element);
                 continue;
             }
-            if (key == "first") continue;
+            if (key == "first") continue; //FIXME: schifezza non scalabile
+            if (key == "name") {
+                if (dataComparison.first)
+                    $(DOM_IDS.spanVsNameL).text(element);
+                else
+                    $(DOM_IDS.spanVsNameR).text(element);
+            }
 
             let textItem = "";
             if (key == "fuel" || key == "fuelConsumptionUnit") {
@@ -221,7 +236,7 @@ function writeCompareMotsData(dataComparison) {
 }
 
 function createTripMot() {
-    const selTripMotTemplate = `<div class="row row-cols-auto align-items-end">
+    const selTripMotTemplate = `<div class="row row-cols-auto align-items-end" id="trip-mots-row-${bData.selNum}">
                                     <div class="col-md-7 col-sm-12" selnum="${bData.selNum}">
                                         <label class="form-label" for="motUsed">Mezzo</label>
                                         <select class="form-select trip-mots">
@@ -232,14 +247,33 @@ function createTripMot() {
                                         <input type="number" min="1" class="form-control trip-mots-km">
                                     </div>
                                     <div class="col-md-2 col-sm-6 top-0">
-                                        <button type="button" class="btn btn-danger">X</button>
+                                        <button type="button" class="btn btn-danger" id="tripBtn-${bData.selNum}" value="${bData.selNum}">X</button>
                                     </div>
                                 </div>`;
     $(DOM_IDS.tripMotsContainer).append(selTripMotTemplate);
-    //TODO: creare l'evento di cancellazione di un mezzo, quindi quando eliminato sganciare con $().off() ogni event listener dal pulsante X
-
+    $(DOM_IDS.btnDeleteTripMot + bData.selNum).on("click", deleteTripMot);
+    
     fillTripMotSelect(bData.listMots, bData.selNum);
     bData.selNum++;
+}
+
+function deleteTripMot(e) {
+    if(DEBUG) console.log(e);
+    $(e.target).off();
+    $(DOM_IDS.tripMotContainer + e.target.value).remove();
+}
+
+function addTrip() {
+    let trip = {
+        name: $(DOM_IDS.inputTripName).val(),
+        ids: [],
+        km:[]
+    };
+    $(DOM_IDS.selectTripMots).each(function (i, el) {
+        trip.ids.push(el.value) 
+    });
+    $(DOM_IDS.inputTripMotsKm).each(function (i, el) { trip.km.push(el.value) });
+    if(DEBUG) console.log(trip);
 }
 
 //TODO: manca l'AJAX in POST richiamato dal pulsande aggiungi viaggio
