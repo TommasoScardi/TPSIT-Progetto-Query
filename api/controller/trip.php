@@ -28,7 +28,7 @@ function getTrip(mysqli $db, int $motId)
         while ($res = $resultSet->fetch_assoc()) {
             $jsonWrapper = new stdClass();
             //$jsonWrapper->tripName = $res["name"];
-            $jsonWrapper->motName = $res["id_mot"];
+            $jsonWrapper->motId = $res["id_mot"];
             $jsonWrapper->kmTrav = $res["km_traveled"];
 
             array_push($tripMots ,$jsonWrapper);

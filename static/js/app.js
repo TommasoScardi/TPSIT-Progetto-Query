@@ -5,10 +5,7 @@ const DOM_IDS = {
     selRight: "#selR",
     spanVsNameL: "#motNameL",
     spanVsNameR: "#motNameR",
-    listDataMotL: "#listDataMotL",
-    imgMotL: "#imgMotL",
-    listDataMotR: "#listDataMotR",
-    imgMotR: "#imgMotR",
+    challengeTabColumnId: "#column-",
     tripMotsContainer: "#tripMotsContainer",
     btnAddTripMot: "#btnAddTripMot",
     btnDeleteTripMot: "#tripBtn-",
@@ -42,6 +39,8 @@ let bData = {
     listMots: null,
     challengeData: [],
     listTrips: null,
+    motData: null,
+    tripData: null,
     selNum: 0,
     motPrefix: "M",
     tripPrefix: "T"
@@ -131,7 +130,7 @@ async function getMotData(motId) {
             if (jsonData == undefined) {btAlert("Errore nel ricevere la risposta dal server", ALERT_COLOR.red); return;}
             if (DEBUG) console.log(jsonData);
 
-            bData.mots.push(jsonData);
+            bData.motData = jsonData;
         })
         .fail(function (jqXHR, textStatus, errorThrown) {
             if (DEBUG) console.log(jqXHR, "\n\n", textStatus, "\n\n", errorThrown);
@@ -152,7 +151,7 @@ async function getTripData(tripId) {
             if (jsonData == undefined) {btAlert("Errore nel ricevere la risposta dal server", ALERT_COLOR.red); return;}
             if (DEBUG) console.log(jsonData);
 
-            bData.trips.push(jsonData);
+            bData.tripData = jsonData;
         })
         .fail(function (jqXHR, textStatus, errorThrown) {
             if (DEBUG) console.log(jqXHR, "\n\n", textStatus, "\n\n", errorThrown);
@@ -165,36 +164,53 @@ async function getTripData(tripId) {
 
 function parseSelValIntoId(selVal) {
     //example: T1, M3 ....
+    if(selVal.length < 2) return false;
+    let id = parseInt(selVal.slice(1, selVal.length));
+    if (isNaN(id)) return false;
     return {
-        id:  parseInt(selVal.slice(1, selVal.length)),
+        id: id,
         type: selVal.charAt(0) == 'M' ? "MOT" : selVal.charAt(0) == "T" ? "TRIP" : null
     };
 }
 
 //FIXME: ora non funziona piu perchè la lista include anche i trips che sono alfanumerici
 async function selectHandler(e) {
+    disableOptionSelected(e);
     if (DEBUG) console.log(e);
 
     if ($(e.target).val() == undefined || $(e.target).val() == "") return;
 
     let elemDispatcherId = "#"+$(e.target).attr("id");
     let selData = parseSelValIntoId($(e.target).val());
+    if (!selData) { btAlert("C'è stato un errore con gli idla finestra di selezione mezzi", ALERT_COLOR.red); return;}
     let dbData = null;
     switch (selData.type) {
         case "MOT":
-            dbData = await getMotData(selData.id);
+            await getMotData(selData.id);
+            dbData = bData.motData;
             break;
 
         case "TRIP":
-            dbData = await getTripData(selData.id);
+            await getTripData(selData.id);
+            dbData = bData.tripData;
+            if (!Array.isArray(dbData)) {
+                btAlert("Errore, dati trip in formato non valido", ALERT_COLOR.red);
+                break;
+            }
+            dbData = [];
+            dbTripData.forEach(async (element) => {
+                await getMotData(element.motId)
+                dbData.push({...bData.tripData, km:element.kmTrav});
+            });
+            
             break;
     
         default:
-            btAlert("Errore, selezionare due mezzi di trasporto validi", ALERT_COLOR.red);
+            btAlert("Errore, selezionare due mezzi di trasporto o viaggi validi", ALERT_COLOR.red);
             return;
     }
     if (dbData == null) {
-        btAlert("Errore, selezionare due mezzi di trasporto validi", ALERT_COLOR.red);
+        btAlert("Errore, selezionare due mezzi di trasporto o viaggi validi", ALERT_COLOR.red);
         return;
     }
     switch (elemDispatcherId) {
@@ -212,7 +228,111 @@ async function selectHandler(e) {
             btAlert("C'è stato un errore con la finestra di selezione mezzi", ALERT_COLOR.red);
             return;
     }
+
+    //selezionati due elementi
+    if (bData.challengeData.length == 2) {
+        writeCompareMotsData(bData.challengeData);
+    }
 }
+
+//FIXME: passare alla funzione writeCompareMotsData il container DOM dove inserire i dati del mot o del trip
+//TODO: create un template di tabella VS (destra e sinistra [si, le cose cambiano])
+function writeCompareMotsData(dataComparison) {
+    //index == 0 ==> prima colonna selezionata, sta sulla sinistra(left)
+    //dataComparison.length ==> 2: due colonne da processare
+    $(`${DOM_IDS.challengeTabColumnId}${0}`).empty();
+    $(`${DOM_IDS.challengeTabColumnId}${1}`).empty();
+
+    for (let index = 0; index < dataComparison.length; index++) {
+        if (Array.isArray(dataComparison[index])) {
+            for (const iterator of dataComparison[index]) {
+                $(`${DOM_IDS.challengeTabColumnId}${index}`).append($(assembleDomForMot(iterator, index == 0)));
+            }
+        }
+        else {
+            $(`${DOM_IDS.challengeTabColumnId}${index}`).append($(assembleDomForMot(dataComparison[index], index == 0)));
+        }
+    }
+    $(DOM_IDS.spanVsNameL).text($(`${DOM_IDS.selLeft} > [value=${$(DOM_IDS.selLeft).val()}]`).text());
+    $(DOM_IDS.spanVsNameR).text($(`${DOM_IDS.selRight} > [value=${$(DOM_IDS.selRight).val()}]`).text());
+}
+
+function assembleDomForMot(data, left = true) {
+    const motSpecNames = {
+        name: "Nome",
+        gCO2PerKm: "Grammi di CO2 per KM",
+        taxes: "Tasse [€]",
+        fuel: {
+            name: "Carburante",
+            types: {
+                E: "Elettrico",
+                B: "Benzina",
+                D: "Diesel",
+                G: "Gas",
+                M: "Metano"
+            }
+        },
+        fuelConsumptionUnit: {
+            name: "Unità di consumo del carburante",
+            types: {
+                LT: "Litro",
+                MC: "Metro Cubo",
+                KW: "Kilowatt"
+            }
+        },
+        kilometerPerUnit: "Km percorsi per unità di consumo del carburante",
+        subscription: "Abbonamento [€]",
+        ticket: "Biglietto [€]"
+    };
+
+    let htmlElem = $("<div>", { class: "row" });
+    let htmlUl = $("<ul>")
+
+    for (const key in data) {
+        if (Object.hasOwnProperty.call(data, key)) {
+            const element = data[key];
+            if (element == null) continue;
+            if (key == "imgUrl") {
+                let imgCont = $("<div>", {
+                    class: `col-6 order-${left - 1 ? "0" : "1"}`
+                });
+
+                imgCont.append(
+                    $("<img>",{
+                        class: "img-fluid rounded-2",
+                        src: element,
+                        alt: "immaginen <"
+                    })
+                );
+                htmlElem.append(imgCont);
+                continue;
+            }
+
+            let textItem = "";
+            if (key == "fuel" || key == "fuelConsumptionUnit") {
+                textItem = `${motSpecNames[key]["name"]} : ${motSpecNames[key]["types"][element]}`;
+            }
+            else {
+                textItem = `${motSpecNames[key]} : ${element}`;
+            }
+            htmlUl.append(
+                $("<li>", {
+                    text: textItem
+                })
+            );
+        }
+    }
+
+    htmlElem.append(
+        $("<div>", {
+            class: `col-6 order-${left - 1 ? "1" : "0"}`
+        }).append(htmlUl)
+    );
+
+    return htmlElem;
+}
+
+//FIXME: vecchia funzine da cancellare
 function getMotsDetails(e) {
     disableOptionSelected(e);
 
@@ -318,65 +438,7 @@ function disableOptionSelected(e) {
     $(`${selId} > [value="${selVal}"]`).attr("disabled", true);
 }
 
-//FIXME: passare alla funzione writeCompareMotsData il container DOM dove inserire i dati del mot o del trip
-//TODO: create un template di tabella VS (destra e sinistra [si, le cose cambiano])
-function writeCompareMotsData(dataComparison) {
-    const motSpecNames = {
-        name: "Nome",
-        gCO2PerKm: "Grammi di CO2 per KM",
-        taxes: "Tasse [€]",
-        fuel: {
-            name: "Carburante",
-            types: {
-                E: "Elettrico",
-                B: "Benzina",
-                D: "Diesel",
-                G: "Gas",
-                M: "Metano"
-            }
-        },
-        fuelConsumptionUnit: {
-            name: "Unità di consumo del carburante",
-            types: {
-                LT: "Litro",
-                MC: "Metro Cubo",
-                KW: "Kilowatt"
-            }
-        },
-        kilometerPerUnit: "Km percorsi per unità di consumo del carburante",
-        subscription: "Abbonamento [€]",
-        ticket: "Biglietto [€]"
-    };
 
-    for (const key in dataComparison) {
-        if (Object.hasOwnProperty.call(dataComparison, key)) {
-            const element = dataComparison[key];
-            if (element == null) continue;
-            if (key == "imgUrl") {
-                $(dataComparison.first ? DOM_IDS.imgMotL : DOM_IDS.imgMotR).attr("src", element);
-                continue;
-            }
-            if (key == "first") continue; //FIXME: schifezza non scalabile
-            if (key == "name") {
-                if (dataComparison.first)
-                    $(DOM_IDS.spanVsNameL).text(element);
-                else
-                    $(DOM_IDS.spanVsNameR).text(element);
-            }
-
-            let textItem = "";
-            if (key == "fuel" || key == "fuelConsumptionUnit") {
-                textItem = `${motSpecNames[key]["name"]} : ${motSpecNames[key]["types"][element]}`;
-            }
-            else {
-                textItem = `${motSpecNames[key]} : ${element}`;
-            }
-            $(dataComparison.first ? DOM_IDS.listDataMotL : DOM_IDS.listDataMotR).append($('<li>', {
-                text: textItem
-            }));
-        }
-    };
-}
 
 function createTripMot() {
     const selTripMotTemplate = `<div class="row row-cols-auto align-items-end" id="trip-mots-row-${bData.selNum}">
