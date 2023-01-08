@@ -21,13 +21,14 @@
                 <div class="bg-primary rounded-1 p-3 h-100">
                     <h3 class="text-center">Query Eseguita</h3>
                     <div>
-                        <pre class="rounded-1"><code class="language-sql"></code></pre>
+                        <pre class="rounded-1"><code class="language-sql" id="queryMot"></code></pre>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 col-sm-12 order-sm-0 order-md-1">
                 <div class="bg-secondary rounded-1 p-3">
                     <h3 class="text-center">Compara mezzi di trasporto</h3>
+                    <p class="text-center">seleziona due elementi per cominciare</p>
                     <div class="row">
                         <div class="col-5">
                             <select class="form-select" size="7" id="selL">
@@ -57,31 +58,39 @@
             <div>
                 <h2 class="text-center"><span id="motNameL"></span> VS <span id="motNameR"></span></h2>
                 <div class="row gap-sm-3">
-                    <div class="col-md-6 col-sm-12 row">
-                        <div class="col-6">
-                            <ul id="listDataMotL">
-                                <!-- <li>Abc</li>
-                                <li>Def</li>
-                                <li>Ghi</li>
-                                <li>Lmn</li> -->
-                            </ul>
+                    <div class="row">
+                        <!-- TODO: rendere dinamica la creazione della scheda VS per i trip -->
+                        <div class="col-md-6 col-sm-12">
+                            <div class="col-6">
+                                <ul id="listDataMotL">
+                                    <!-- <li>Abc</li>
+                                                        <li>Def</li>
+                                                        <li>Ghi</li>
+                                                        <li>Lmn</li> -->
+                                </ul>
+                            </div>
+                            <div class="col-6">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/HD_transparent_picture.png"
+                                    class="img-fluid float-end rounded-2" alt="..." id="imgMotL">
+                            </div>
+                            <!-- <hr class="w-50 text-warning m-auto my-2"> -->
                         </div>
-                        <div class="col-6">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/HD_transparent_picture.png" class="img-fluid float-end rounded-2" alt="..." id="imgMotL">
-                        </div>
-                        <!-- <hr class="w-50 text-warning m-auto my-2"> -->
                     </div>
-                    <div class="col-md-6 col-sm-12 row">
-                        <div class="col-6">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/HD_transparent_picture.png" class="img-fluid float-start rounded-2" alt="..." id="imgMotR">
-                        </div>
-                        <div class="col-6">
-                            <ul id="listDataMotR">
-                                <!-- <li>Abc</li>
-                                <li>Def</li>
-                                <li>Ghi</li>
-                                <li>Lmn</li> -->
-                            </ul>
+                    <div class="row">
+                        <!-- TODO: rendere dinamica la creazione della scheda VS per i trip -->
+                        <div class="col-md-6 col-sm-12">
+                            <div class="col-6">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/HD_transparent_picture.png"
+                                    class="img-fluid float-start rounded-2" alt="..." id="imgMotR">
+                            </div>
+                            <div class="col-6">
+                                <ul id="listDataMotR">
+                                    <!-- <li>Abc</li>
+                                                        <li>Def</li>
+                                                        <li>Ghi</li>
+                                                        <li>Lmn</li> -->
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -132,7 +141,7 @@
                 <div class="bg-primary rounded-1 p-3 h-100">
                     <h3 class="text-center">Query Eseguita</h3>
                     <div>
-                        <pre class="rounded-1"><code class="language-sql"></code></pre>
+                        <pre class="rounded-1"><code class="language-sql" id="queryTrip"></code></pre>
                     </div>
                 </div>
             </div>
