@@ -77,7 +77,7 @@ function createTrip(mysqli $db, $newTrip)
     $tripId = null;
 
     $stmt = $db->prepare("INSERT INTO queryProject.trip (name) VALUES (?)");
-    $stmt->bind_param("s", $newTrip["name"]);
+    $stmt->bind_param("s", str_replace(" ", "", strtolower($newTrip["name"])));
     $stmt->execute();
     $tripId = $stmt->insert_id;
     $stmt->close();

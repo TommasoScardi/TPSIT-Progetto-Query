@@ -56,7 +56,7 @@ if (str_contains($_GET["q"], GET_NAME)) {
             }
 
             if (createTrip($dbConn, $_DATA)) {
-                echo '{"code":200, "message":"ok"}';
+                echo '{"code":200, "message":"Trip Created"}';
             }
             else {
                 Error(400, "error creating the trip");
