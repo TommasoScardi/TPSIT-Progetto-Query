@@ -1,5 +1,5 @@
 <?php
-include_once "api/util/errors.php";
+include_once "util/errors.php";
 
 $dbHost = "localhost";
 $dbUsername = "root";
