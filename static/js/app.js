@@ -1,4 +1,4 @@
-const REQ_URL = "http://localhost/Scardi_Tommaso_Query/api/";
+const REQ_URL = "api/";
 const DOM_IDS = {
     selLeft: "#selL",
     selRight: "#selR",
