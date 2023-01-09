@@ -1,4 +1,5 @@
 <?php
+include_once "api/util/errors.php";
 
 $dbHost = "localhost";
 $dbUsername = "root";
@@ -11,5 +12,5 @@ try {
     $dbConn->set_charset("utf8mb4");
 } catch (Exception $e) {
     error_log($e->getMessage());
-    exit('Error connecting to database'); //Should be a message a typical user could understand
+    Error(503,'Error connecting to database'); //Should be a message a typical user could understand
 }
