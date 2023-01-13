@@ -36,10 +36,10 @@
                     <div class="row align-items-end">
                         <div class="col-5">
                             <select class="form-select" size="7" id="selL">
-                                <option selected>Choose...</option>
+                                <!-- <option selected>Choose...</option>
                                 <option value="1">One</option>
                                 <option value="2">Two</option>
-                                <option value="3">Three</option>
+                                <option value="3">Three</option> -->
                             </select>
                         </div>
                         <div class="col-2">
@@ -47,10 +47,10 @@
                         </div>
                         <div class="col-5">
                             <select class="form-select" size="7" id="selR">
-                                <option selected>Choose...</option>
+                                <!-- <option selected>Choose...</option>
                                 <option value="1">One</option>
                                 <option value="2">Two</option>
-                                <option value="3">Three</option>
+                                <option value="3">Three</option> -->
                             </select>
                         </div>
                     </div>
@@ -64,7 +64,7 @@
                 <div class="row">
                     <div class="col-6" id="colL">
                         <!-- TEMPLATE -->
-                        <div class="row g-3">
+                        <!-- <div class="row g-3">
                                 <div class="col-md-6 col-sm-12 order-md-1 order-sm-0">
                                     <img src="https://wallpaperaccess.com/full/3238251.jpg" class="img-fluid float-end rounded-2" alt="..." id="imgMotL">
                                 </div>
@@ -76,13 +76,12 @@
                                         <li class="list-group-item">Lmn</li>
                                     </ul>
                                 </div>
-                                <!-- <hr class="w-50 text-warning m-auto my-2"> -->
-                        </div>
+                        </div> -->
                         <!-- END TEMPLATE -->
                     </div>
                     <div class="col-6" id="colR">
                         <!-- TEMPLATE -->
-                        <div class="row g-3">
+                        <!-- <div class="row g-3">
                                 <div class="col-md-6 col-sm-12 order-0">
                                     <img src="https://www.epaddock.it/wp-content/uploads/2022/12/Super-soco-CUmini-2022-1200x800-1.jpg"
                                         class="img-fluid rounded-2" alt="..." id="imgMotL">
@@ -95,7 +94,7 @@
                                         <li class="list-group-item">Lmn</li>
                                     </ul>
                                 </div>
-                        </div>
+                        </div> -->
                         <!-- END TEMPLATE -->
                     </div>
                 </div>
@@ -106,12 +105,12 @@
 
         <div class="row g-sm-2">
             <div class="col-md-6 col-sm-12">
-                <div class="bg-success rounded-1 p-3">
+                <form action="" method="" class="bg-success rounded-1 p-3">
                     <h3 class="text-center">Crea Viaggio</h3>
                     <div class="mb-3">
                         <div class="mb-3">
                             <label for="nameTrip" class="form-label">Nome</label>
-                            <input type="text" class="form-control" id="nameTrip" placeholder="Casa - Lavoro - Casa">
+                            <input type="text" class="form-control" id="nameTrip" placeholder="Casa - Lavoro - Casa" required>
                         </div>
                         <div class="mb-3 border border-1 border-white rounded-2 p-2">
                             <div class="mb-3" id="tripMotsContainer">
@@ -138,9 +137,9 @@
                                     id="btnAddTripMot">+</button></div>
                         </div>
                     </div>
-                    <div class="text-center m-auto"><button type="button" class="btn btn-primary" id="btnAddTrip">Aggiungi
+                    <div class="text-center m-auto"><button type="submit" class="btn btn-primary" id="btnAddTrip">Aggiungi
                             Viaggio</button></div>
-                </div>
+                </form>
             </div>
             <div class="col-md-6 col-sm-12">
                 <div class="bg-primary rounded-1 p-3 h-100">
