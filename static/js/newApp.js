@@ -49,7 +49,7 @@ const QUERIES = {
     selectBox: "SELECT id, name from queryProject.mot\nSELECT id, name from queryProject.trip",
     vsMot: "SELECT name, img_url, g_co2_km, taxes, fuel, fuel_consumption_unit, kilometer_per_unit, subscription, ticket\n\tFROM queryProject.mot m\n\tJOIN queryProject.emissions e ON m.id = e.id_mot\n\tJOIN queryProject.costs c ON m.id = c.id_mot\n\tWHERE m.id = ",
     vsTripName: "SELECT name from queryProject.trip where id = ",
-    vsTrip: `SELECT id_mot, km_traveled\n\tFROM queryProject.trip t, queryProject.trip_mot tm\n\tWHERE t.id = tm.id_trip AND t.id = `,
+    vsTripData: `SELECT id_mot, km_traveled\n\tFROM queryProject.trip t, queryProject.trip_mot tm\n\tWHERE t.id = tm.id_trip AND t.id = `,
     addTripName: `INSERT INTO queryProject.trip (name) VALUES `,
     addTripData: `INSERT INTO queryProject.trip_mot VALUES `
 }
@@ -78,7 +78,7 @@ $(function (e) {
 });
 
 function WriteQuery(query, id, append = false) {
-    $(id).text(append ? `${$(id).text()}\n${query}` : query);
+    $(id).text(append ? `${$(id).text()}${$(id).text().length > 0 ? "\n" : ""}${query}` : query);
     Prism.highlightAll();
 }
 
@@ -384,7 +384,7 @@ async function SelectEventHandler(e) {
                     let apiVal = await GetMotData(elemData.id);
                     if(apiVal != null && !apiVal.error) {
                         elemData.data = {mots: [apiVal]};
-                        WriteQuery(QUERIES.vsMot + elemData.id, HTML_ELEM.queryMot, true);
+                        WriteQuery(`${key == "selL" ? "--select di sinistra" : "--select di destra"}\n${QUERIES.vsMot}${elemData.id}`, HTML_ELEM.queryMot, true);
                     }
                     else {
                         btAlert("Id mot errato: "+elemData,id, ALERT_COL.red);
@@ -395,7 +395,7 @@ async function SelectEventHandler(e) {
                     let apiVal = await GetTripData(elemData.id);
                     if (apiVal != null && !apiVal.error) {
                         elemData.data = apiVal;
-                        WriteQuery(`${QUERIES.vsTripName}${elemData.id}\n${QUERIES.vsTrip}${elemData.id}`, HTML_ELEM.queryMot, true);
+                        WriteQuery(`${key == "selL" ? "--select di sinistra" : "--select di destra"}\n${QUERIES.vsTripName}${elemData.id}\n${QUERIES.vsTripData}${elemData.id}`, HTML_ELEM.queryMot, true);
                     }
                     else {
                         btAlert("Id trip errato: " + elemData, id, ALERT_COL.red);
@@ -499,22 +499,23 @@ function AddTripEventHandler(e) {
     options.url += "Trip-create";
     options.data = JSON.stringify(trip);
     console.log(options);
+    WriteQuery(`${QUERIES.addTripName}('${trip.name}')\n${QUERIES.addTripData}${trip.mots.map((val) => { return `(${val})`; })}`, HTML_ELEM.queryTrip);
 
-    $.ajax(options)
-        .done(function (data, textStatus, jqXHR) {
-            let jsonData = JSON.parse(data);
-            if (jsonData == undefined) { btAlert("Errore nel ricevere la risposta dal server", ALERT_COL.red); return; }
-            if (DEBUG) console.log(jsonData);
+    // $.ajax(options)
+    //     .done(function (data, textStatus, jqXHR) {
+    //         let jsonData = JSON.parse(data);
+    //         if (jsonData == undefined) { btAlert("Errore nel ricevere la risposta dal server", ALERT_COL.red); return; }
+    //         if (DEBUG) console.log(jsonData);
 
-            ResetTripTabEventHandler();
-            FillSelectEventHandler(null);
-            WriteQuery(`${QUERIES.addTripName}('${trip.name}')\n${QUERIES.addTripData}${trip.mots.map((val) => {return `(${val})`;})}`, HTML_ELEM.queryTrip);
-            btAlert(jsonData.message, ALERT_COL.gre);
-        })
-        .fail(function (jqXHR, textStatus, errorThrown) {
-            if (DEBUG) console.log(jqXHR, "\n\n", textStatus, "\n\n", errorThrown);
-            let errMsg = JSON.parse(jqXHR.responseText);
-            if (errMsg == undefined) return;
-            btAlert(errMsg.message, ALERT_COL.red);
-        });
+    //         ResetTripTabEventHandler();
+    //         FillSelectEventHandler(null);
+    //         WriteQuery(`${QUERIES.addTripName}('${trip.name}')\n${QUERIES.addTripData}${trip.mots.map((val) => {return `(${val})`;})}`, HTML_ELEM.queryTrip);
+    //         btAlert(jsonData.message, ALERT_COL.gre);
+    //     })
+    //     .fail(function (jqXHR, textStatus, errorThrown) {
+    //         if (DEBUG) console.log(jqXHR, "\n\n", textStatus, "\n\n", errorThrown);
+    //         let errMsg = JSON.parse(jqXHR.responseText);
+    //         if (errMsg == undefined) return;
+    //         btAlert(errMsg.message, ALERT_COL.red);
+    //     });
 }
