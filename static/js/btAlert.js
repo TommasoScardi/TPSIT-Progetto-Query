@@ -7,6 +7,7 @@ const btAlert = (message, type) => {
         "</div>",
     ].join("");
 
+    window.scrollTo(0, 0);
     document.getElementById("liveAlertPlaceholder").append(wrapper);
     setTimeout(function () {
         const btn = document.getElementsByClassName("btn-close")[0];

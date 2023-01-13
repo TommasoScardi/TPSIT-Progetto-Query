@@ -1,0 +1,88 @@
+{
+	"info": {
+		"_postman_id": "df3055db-d6d1-475d-a2c3-3b8928f4ecc1",
+		"name": "School Query Project",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "MOT-Trip gets",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/Scardi_Tommaso_Query/api/?q=getTrip-tripMots&id=1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"Scardi_Tommaso_Query",
+						"api",
+						""
+					],
+					"query": [
+						{
+							"key": "q",
+							"value": "getTrip-tripMots",
+							"description": "namesList: ottiene la lista dei nomi dei trip con i loro id\ntrip: ottiene i dati su un trip [codificati come array idMot, kmPercorsi] (richiede il parametro ID)\ntripMots: ottiene i dati su un trip [codificati come array nomeMot, kmPercorsi] (richiede il parametro ID)"
+						},
+						{
+							"key": "q",
+							"value": "getMOT-mot",
+							"description": "namesList: ottiene la lista dei mot con id e nome\nmot: ottiene i dettagli di un mot (richiede il parametro ID)",
+							"disabled": true
+						},
+						{
+							"key": "id",
+							"value": "1"
+						},
+						{
+							"key": "prefixId",
+							"value": "1",
+							"description": "NON PIU USATO",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Trip post",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\" : \"Casa - Lavoro\",\r\n    \"mots\" : [\r\n        [7, 0.5],\r\n        [5, 10],\r\n        [7, 0.3]\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost/Scardi_Tommaso_Query/api/?q=getTrip-create",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"Scardi_Tommaso_Query",
+						"api",
+						""
+					],
+					"query": [
+						{
+							"key": "q",
+							"value": "getTrip-create",
+							"description": "create: richiesta in post per creare un trip fornito nome e elenco mots come in esempio"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

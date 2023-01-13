@@ -33,7 +33,7 @@ create table costs
 create table trip --use of diffrent means of trasportation in one travel
 (
     id int auto_increment,
-    name varchar(255),
+    name varchar(255) UNIQUE,
     primary key (id)
 );
 

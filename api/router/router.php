@@ -1,6 +1,6 @@
 <?php
 
-include_once "util/router.php";
+include_once "util/errors.php";
 include_once "includes/dbconn.inc.php";
 
 if(!isset($_GET["q"])) {

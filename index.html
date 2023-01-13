@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -10,38 +11,46 @@
     <link rel="stylesheet" href="static/css/prism.css">
     <link rel="stylesheet" href="static/css/style.css">
 </head>
+
 <body>
     <main class="container">
-        <h2 class="text-center p-2">Scardi Query EdCivica</h2>
+        <div class="py-5 text-center">
+            <img class="d-block mx-auto mb-4 rounded-circle" src="static/images/logo.jpg" alt="icon" width="100" height="100">
+            <h2>Scardi Progetto EdCivica Query</h2>
+            <p class="lead">Il progetto ha come duplice soggetto le query sql e la mobilita sostenibile, argomento di educazione civica, e cerca di spiegare tutto ciò grazie ad una semplice web app</p>
+        </div>
         <div id="liveAlertPlaceholder"></div>
-        <div class="row">
-            <div class="col-6">
+        <div class="row g-sm-2">
+            <div class="col-md-6 col-sm-12 order-sm-1 order-md-0">
                 <div class="bg-primary rounded-1 p-3 h-100">
                     <h3 class="text-center">Query Eseguita</h3>
                     <div>
-                        <pre class="rounded-1"><code class="language-sql"></code></pre>
+                        <pre class="rounded-1"><code class="language-sql" id="queryMot">   </code></pre>
                     </div>
                 </div>
             </div>
-            <div class="col-6">
-                <div class="bg-secondary rounded-1 p-3">
+            <div class="col-md-6 col-sm-12 order-sm-0 order-md-1">
+                <div class="bg-secondary rounded-1 p-3 h-100">
                     <h3 class="text-center">Compara mezzi di trasporto</h3>
-                    <div class="row">
+                    <p class="text-center">seleziona due elementi per cominciare</p>
+                    <div class="row align-items-center">
                         <div class="col-5">
-                            <select class="form-select" size="5" id="selL">
-                                <option selected>Choose...</option>
+                            <select class="form-select" size="7" id="selL">
+                                <!-- <option selected>Choose...</option>
                                 <option value="1">One</option>
                                 <option value="2">Two</option>
-                                <option value="3">Three</option>
+                                <option value="3">Three</option> -->
                             </select>
                         </div>
-                        <div class="col-2"><div class="text-center">VS</div></div>
+                        <div class="col-2">
+                            <div class="text-center">VS</div>
+                        </div>
                         <div class="col-5">
-                            <select class="form-select" size="5" id="selR">
-                                <option selected>Choose...</option>
+                            <select class="form-select" size="7" id="selR">
+                                <!-- <option selected>Choose...</option>
                                 <option value="1">One</option>
                                 <option value="2">Two</option>
-                                <option value="3">Three</option>
+                                <option value="3">Three</option> -->
                             </select>
                         </div>
                     </div>
@@ -51,34 +60,42 @@
 
         <div class="bg-danger bg-gradient rounded-1 mt-2 p-3">
             <div>
-                <h2 class="text-center">Confronto tra <span>car1</span> VS <span>car2</span></h2>
+                <h2 class="text-center"><span id="motNameL"></span> VS <span id="motNameR"></span></h2>
                 <div class="row">
-                    <div class="col-6 row">
-                        <div class="col-6">
-                            <ul>
-                            <li>Abc</li>
-                            <li>Def</li>
-                            <li>Ghi</li>
-                            <li>Lmn</li>
-                            </ul>
-                        </div>
-                        <div class="col-6">                            
-                            <img src="https://www.smecsrl.it/wp-content/uploads/2022/12/Fiat-Tipo-1200x675.jpg" class="img-fluid float-end" alt="...">
-                        </div>
+                    <div class="col-6" id="colL">
+                        <!-- TEMPLATE -->
+                        <!-- <div class="row g-3">
+                                <div class="col-md-6 col-sm-12 order-md-1 order-sm-0">
+                                    <img src="https://wallpaperaccess.com/full/3238251.jpg" class="img-fluid float-end rounded-2" alt="..." id="imgMotL">
+                                </div>
+                                <div class="col-md-6 col-sm-12 order-md-0 order-sm-1">
+                                    <ul id="listDataMotR" class="list-group">
+                                        <li class="list-group-item active">Abc</li>
+                                        <li class="list-group-item">Def</li>
+                                        <li class="list-group-item">Ghi</li>
+                                        <li class="list-group-item">Lmn</li>
+                                    </ul>
+                                </div>
+                        </div> -->
+                        <!-- END TEMPLATE -->
                     </div>
-                    <div class="col-6 row">
-                        <div class="col-6">
-                            <img src="https://www.smecsrl.it/wp-content/uploads/2022/12/citroen-c5-aircross-1200x675.jpg" class="img-fluid float-start"
-                                alt="...">
-                        </div>
-                        <div class="col-6">
-                            <ul>
-                                <li>Abc</li>
-                                <li>Def</li>
-                                <li>Ghi</li>
-                                <li>Lmn</li>
-                            </ul>
-                        </div>
+                    <div class="col-6" id="colR">
+                        <!-- TEMPLATE -->
+                        <!-- <div class="row g-3">
+                                <div class="col-md-6 col-sm-12 order-0">
+                                    <img src="https://www.epaddock.it/wp-content/uploads/2022/12/Super-soco-CUmini-2022-1200x800-1.jpg"
+                                        class="img-fluid rounded-2" alt="..." id="imgMotL">
+                                </div>
+                                <div class="col-md-6 col-sm-12 order-1">
+                                    <ul id="listDataMotR" class="list-group">
+                                        <li class="list-group-item active">Abc</li>
+                                        <li class="list-group-item">Def</li>
+                                        <li class="list-group-item">Ghi</li>
+                                        <li class="list-group-item">Lmn</li>
+                                    </ul>
+                                </div>
+                        </div> -->
+                        <!-- END TEMPLATE -->
                     </div>
                 </div>
             </div>
@@ -86,55 +103,64 @@
 
         <hr>
 
-        <div class="row">
-            <div class="col-6">
-                <div class="bg-success rounded-1 p-3">
+        <div class="row g-sm-2">
+            <div class="col-md-6 col-sm-12">
+                <form action="" method="" class="bg-success rounded-1 p-3">
                     <h3 class="text-center">Crea Viaggio</h3>
                     <div class="mb-3">
                         <div class="mb-3">
                             <label for="nameTrip" class="form-label">Nome</label>
-                            <input type="text" class="form-control" id="nameTrip" placeholder="Casa - Lavoro - Casa">
+                            <input type="text" class="form-control" id="nameTrip" placeholder="Casa - Lavoro - Casa" required>
                         </div>
-                        <div class="mb-3">
-                            <div class="row">
-                                <div class="col-md-9 col-sm-12">
-                                    <label class="form-label" for="motUsed">Mezzo</label>
-                                    <select class="form-select trip-mots">
-                                        <option selected>Choose...</option>
-                                        <option value="1">One</option>
-                                        <option value="2">Two</option>
-                                        <option value="3">Three</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3 col-sm-12">
-                                    <label for="kmTraveled" class="form-label">KM</label>
-                                    <input type="number" min="1" class="form-control trip-mots-km" id="kmTraveled">
-                                </div>
+                        <div class="mb-3 border border-1 border-white rounded-2 p-2">
+                            <div class="mb-3" id="tripMotsContainer">
+                                <!-- <div class="row row-cols-auto align-items-end">
+                                    <div class="col-md-7 col-sm-12" selnum="0">
+                                        <label class="form-label" for="motUsed">Mezzo</label>
+                                        <select class="form-select trip-mots">
+                                            <option selected>Choose...</option>
+                                            <option value="1">One</option>
+                                            <option value="2">Two</option>
+                                            <option value="3">Three</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 col-sm-6">
+                                        <label for="kmTraveled" class="form-label">KM</label>
+                                        <input type="number" min="1" class="form-control trip-mots-km">
+                                    </div>
+                                    <div class="col-md-2 col-sm-6 top-0">
+                                        <button type="button" class="btn btn-danger" id="tripBtn-0">X</button>
+                                    </div>
+                                </div> -->
                             </div>
+                            <div class="text-center m-auto"><button type="button" class="btn btn-warning"
+                                    id="btnAddTripMot">+</button></div>
                         </div>
-                        <div class="text-center m-auto"><button type="button" class="btn btn-warning">+</button></div>
                     </div>
-                    <div class="text-center m-auto"><button type="button" class="btn btn-primary">Aggiungi Viaggio</button></div>
-                </div>
+                    <div class="text-center m-auto"><button type="submit" class="btn btn-primary" id="btnAddTrip">Aggiungi
+                            Viaggio</button></div>
+                </form>
             </div>
-            <div class="col-6">
+            <div class="col-md-6 col-sm-12">
                 <div class="bg-primary rounded-1 p-3 h-100">
                     <h3 class="text-center">Query Eseguita</h3>
                     <div>
-                        <pre class="rounded-1"><code class="language-sql"></code></pre>
+                        <pre class="rounded-1"><code class="language-sql" id="queryTrip"></code></pre>
                     </div>
                 </div>
             </div>
         </div>
 
     </main>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"
         integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V"
         crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.3/dist/jquery.min.js"></script>
     <script src="static/js/prism.js"></script>
     <script src="static/js/btAlert.js"></script>
-    <script src="static/js/app.js"></script>
+    <!-- <script src="static/js/app.js"></script> -->
+    <script src="static/js/newApp.js"></script>
 </body>
+
 </html>
