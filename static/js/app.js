@@ -1,24 +1,34 @@
-const DEBUG = true;
+const DEBUG = {
+    gen: false,
+    ajax: false
+}
 const REQ_URL = "api/";
-const DOM_IDS = {
-    selLeft: "#selL",
-    selRight: "#selR",
-    spanVsNameL: "#motNameL",
-    spanVsNameR: "#motNameR",
-    challengeTabColumnId: "#column-",
+const HTML_ELEM = {
+    selectLeftEl: "#selL",
+    selectRigthEl: "#selR",
+    columnLeft: "#colL",
+    selL: "#colL",
+    columnRigth: "#colR",
+    selR: "#colR",
     tripMotsContainer: "#tripMotsContainer",
-    btnAddTripMot: "#btnAddTripMot",
     btnDeleteTripMot: "#tripBtn-",
-    btnDeleteTripMots: ".btn-delete-trip",
-    tripMotContainer: "#trip-mots-row-",
-    inputTripName: "#nameTrip",
-    selectTripMots: ".trip-mots",
-    inputTripMotsKm: ".trip-mots-km",
+    btnAddTripMot: "#btnAddTripMot",
     btnAddTrip: "#btnAddTrip",
+    selectTripMots: ".trip-mots",
+    inputTripName: "#nameTrip",
+    btnDeleteTripMots: ".btn-delete-trip",
+    inputTripMotsKm: ".trip-mots-km",
+    tripMotContainer: "#trip-mots-row-",
     queryMot: "#queryMot",
-    queryTrip: "#queryTrip"
+    queryTrip: "#queryTrip",
 };
-const AJAX_DEF_OPT = {
+
+const PREFIXS = {
+    mot: "M",
+    trip: "T",
+}
+
+const AJAX_OPT = {
     async: true,
     crossDomain: true,
     //headers: { Accept: "application/json" },
@@ -28,236 +38,177 @@ const AJAX_DEF_OPT = {
     //contentType: "application/json",
     //data: null,
 };
-const ALERT_COLOR = {
+
+const ALERT_COL = {
     red: "danger",
-    yellow: "warning",
-    green: "success",
-    blue: "primary"
+    yel: "warning",
+    gre: "success",
 }
 
-let bData = {
-    listMots: null,
-    challengeData: [],
-    listTrips: null,
-    motData: null,
-    tripData: null,
-    selNum: 0,
-    motPrefix: "M",
-    tripPrefix: "T"
+const QUERIES = {
+    selectBox: "SELECT id, name from queryProject.mot\nSELECT id, name from queryProject.trip",
+    vsMot: "SELECT name, img_url, g_co2_km, taxes, fuel, fuel_consumption_unit, kilometer_per_unit, subscription, ticket\n\tFROM queryProject.mot m\n\tJOIN queryProject.emissions e ON m.id = e.id_mot\n\tJOIN queryProject.costs c ON m.id = c.id_mot\n\tWHERE m.id = ",
+    vsTripName: "SELECT name from queryProject.trip where id = ",
+    vsTripData: `SELECT id_mot, km_traveled\n\tFROM queryProject.trip t, queryProject.trip_mot tm\n\tWHERE t.id = tm.id_trip AND t.id = `,
+    addTripName: `INSERT INTO queryProject.trip (name) VALUES `,
+    addTripData: `INSERT INTO queryProject.trip_mot VALUES `
+}
+
+let selectedItemsIds = {
+    selL: null,
+    selR: null,
 };
 
-$(async function () {
-    await getMotNamesList(bData.motPrefix);
-    await getTripNamesList(bData.tripPrefix);
-    fillUiSelect([...bData.listMots, ...bData.listTrips]);
-    fillTripMotSelect(bData.listMots);
-    
-    //Event binding
-    //FIXME: new event handler function
-    // $(DOM_IDS.selLeft).on("change", getMotsDetails);
-    // $(DOM_IDS.selRight).on("change", getMotsDetails);
-    $(DOM_IDS.selLeft).on("change", selectHandler);
-    $(DOM_IDS.selRight).on("change", selectHandler);
-    
-    createTripMot();
-    $(DOM_IDS.btnAddTripMot).on("click", createTripMot);
+let listMot_Trips = null;
+let tripMotsFieldCount = 0;
 
-    $(DOM_IDS.btnAddTrip).on("click", addTrip);
+//document onload function
+//bind dom with event handler
+$(function (e) {
+    FillSelectEventHandler(e);
+
+    [$(HTML_ELEM.selectLeftEl), $(HTML_ELEM.selectRigthEl)]
+        .forEach(function (val) {
+            val.on("change", SelectEventHandler);
+        });
+
+    $(HTML_ELEM.btnAddTripMot).on("click", CreateTripMotEventHandler);
+    $(HTML_ELEM.btnAddTrip).on("click", AddTripEventHandler);
+
 });
 
-async function getMotNamesList(prefix) {
-    let options = { ...AJAX_DEF_OPT };
-    options.url += "MOT-namesList";
-
-    await $.ajax(options)
-        .done(function (data, textStatus, jqXHR) {
-            let jsonData = JSON.parse(data);
-            if (jsonData == undefined) {btAlert("Errore nel ricevere la risposta dal server", ALERT_COLOR.red); return;}
-            if (DEBUG) console.log(jsonData);
-
-            for (let index = 0; index < jsonData.length; index++) {
-                jsonData[index].id = `${prefix}${jsonData[index].id}`;
-            }
-            
-            bData.listMots = jsonData;
-        })
-        .fail(function (jqXHR, textStatus, errorThrown) {
-            if (DEBUG) console.log(jqXHR, "\n\n", textStatus, "\n\n", errorThrown);
-            let errMsg = JSON.parse(jqXHR.responseText);
-            if (errMsg == undefined) return;
-            btAlert(errMsg.message, ALERT_COLOR.red);
-        });
-    $(DOM_IDS.queryMot).append(document.createTextNode("SELECT id, name from queryProject.mot;\n"));
+function WriteQuery(query, id, append = false) {
+    $(id).text(append ? `${$(id).text()}${$(id).text().length > 0 ? "\n" : ""}${query}` : query);
     Prism.highlightAll();
 }
 
-async function getTripNamesList(prefix) {
-    let options = { ...AJAX_DEF_OPT };
-    options.async = false;
-    options.url += `Trip-namesList`;
+async function GetListMot_Trip() {
+    let res = null;
+    let reqOpt = { ...AJAX_OPT };
+    reqOpt.url += "MOT-namesList";
 
-    await $.ajax(options)
-        .done(function (data, textStatus, jqXHR) {
+    //TODO: add some tyi-catch blocks
+    await $.ajax(reqOpt)
+        .done(function (data) {
             let jsonData = JSON.parse(data);
-            if (jsonData == undefined) {
-                btAlert("Errore nel ricevere la risposta dal server", ALERT_COLOR.red);
-                return;
-            }
-            if (DEBUG) console.log(jsonData);
-
-            for (let index = 0; index < jsonData.length; index++) {
-                jsonData[index].id = `${prefix}${jsonData[index].id}`;
-            }
-            bData.listTrips = jsonData;
+            if (jsonData == undefined) return null;
+            if (DEBUG.ajax) console.log(jsonData);
+            jsonData.forEach(function (val, i, array) {
+                array[i].id = PREFIXS.mot + val.id;
+            })
+            res = jsonData;
         })
-        .fail(function (jqXHR, textStatus, errorThrown) {
-            if (DEBUG) console.log(jqXHR, "\n\n", textStatus, "\n\n", errorThrown);
+        .fail(function (jqXHR) {
+            if (DEBUG.ajax) console.log(jqXHR.responseText);
             let errMsg = JSON.parse(jqXHR.responseText);
-            if (errMsg == undefined) return;
-            btAlert(errMsg.message, ALERT_COLOR.red);
+            if (errMsg == undefined) return null;
+            res = { error: true, ...errMsg };
         });
-    $(DOM_IDS.queryMot).append(document.createTextNode("SELECT id, name from queryProject.trip;\n"));
-    Prism.highlightAll();
-}
 
-async function getMotData(motId) {
-    let options = { ...AJAX_DEF_OPT };
-    options.url = AJAX_DEF_OPT.url + "MOT-mot&id=" + motId;
+    //codice errore
+    if (res.error) {
+        return res;
+    }
 
-    await $.ajax(options)
-        .done(function (data, textStatus, jqXHR) {
+    reqOpt.url = AJAX_OPT.url + "Trip-namesList";
+    //TODO: add some tyi-catch blocks
+    await $.ajax(reqOpt)
+        .done(function (data) {
             let jsonData = JSON.parse(data);
-            if (jsonData == undefined) {btAlert("Errore nel ricevere la risposta dal server", ALERT_COLOR.red); return;}
-            if (DEBUG) console.log(jsonData);
-
-            bData.motData = jsonData;
+            if (jsonData == undefined) return null;
+            if (DEBUG.ajax) console.log(jsonData);
+            jsonData.forEach(function (val, i, array) {
+                array[i].id = PREFIXS.trip + val.id;
+            })
+            res = res.concat(jsonData);
         })
-        .fail(function (jqXHR, textStatus, errorThrown) {
-            if (DEBUG) console.log(jqXHR, "\n\n", textStatus, "\n\n", errorThrown);
+        .fail(function (jqXHR) {
+            if (DEBUG.ajax) console.log(jqXHR.responseText);
             let errMsg = JSON.parse(jqXHR.responseText);
-            if (errMsg == undefined) return;
-            btAlert(errMsg.message, ALERT_COLOR.red);
-            return;
+            if (errMsg == undefined) return null;
+            res = { error: true, ...errMsg };
         });
+    if (DEBUG.gen) console.log(res);
+    return res;
 }
 
-async function getTripData(tripId) {
-    let options = { ...AJAX_DEF_OPT };
-    options.url = AJAX_DEF_OPT.url + "Trip-trip&id=" + tripId;
+async function GetMotData(id) {
+    if (id == undefined || isNaN(parseInt(id))) return null;
+    let res = null;
+    let reqOpt = { ...AJAX_OPT };
+    reqOpt.url += "MOT-mot&id=" + id;
 
-    await $.ajax(options)
-        .done(function (data, textStatus, jqXHR) {
+    //TODO: add some tyi-catch blocks
+    await $.ajax(reqOpt)
+        .done(function (data) {
             let jsonData = JSON.parse(data);
-            if (jsonData == undefined) {btAlert("Errore nel ricevere la risposta dal server", ALERT_COLOR.red); return;}
-            if (DEBUG) console.log(jsonData);
-
-            bData.tripData = jsonData;
+            if (jsonData == undefined) return null;
+            if (DEBUG.ajax) console.log(jsonData);
+            res = jsonData;
         })
-        .fail(function (jqXHR, textStatus, errorThrown) {
-            if (DEBUG) console.log(jqXHR, "\n\n", textStatus, "\n\n", errorThrown);
+        .fail(function (jqXHR) {
+            if (DEBUG.ajax) console.log(jqXHR.responseText);
             let errMsg = JSON.parse(jqXHR.responseText);
-            if (errMsg == undefined) return;
-            btAlert(errMsg.message, ALERT_COLOR.red);
-            return;
+            if (errMsg == undefined) return null;
+            res = { error: true, ...errMsg };
         });
+    if (DEBUG.gen) console.log(res);
+    return res;
 }
 
-function parseSelValIntoId(selVal) {
-    //example: T1, M3 ....
-    if(selVal.length < 2) return false;
-    let id = parseInt(selVal.slice(1, selVal.length));
-    if (isNaN(id)) return false;
-    return {
-        id: id,
-        type: selVal.charAt(0) == 'M' ? "MOT" : selVal.charAt(0) == "T" ? "TRIP" : null
-    };
+async function GetTripData(id) {
+    if (id == undefined || isNaN(parseInt(id))) return null;
+    let res = null;
+    let reqOpt = { ...AJAX_OPT };
+    reqOpt.url += "Trip-trip&id=" + id;
+
+    //TODO: add some tyi-catch blocks
+    await $.ajax(reqOpt)
+        .done(function (data) {
+            let jsonData = JSON.parse(data);
+            if (jsonData == undefined) return null;
+            if (DEBUG.ajax) console.log(jsonData);
+            res = jsonData;
+        })
+        .fail(function (jqXHR) {
+            if (DEBUG.ajax) console.log(jqXHR.responseText);
+            let errMsg = JSON.parse(jqXHR.responseText);
+            if (errMsg == undefined) return null;
+            res = { error: true, ...errMsg };
+        });
+    if (res == null || res.error) {
+        return res;
+    }
+
+    for (let index = 0; index < res.mots.length; index++) {
+        const element = res.mots[index];
+        let tempFetchMot = await GetMotData(element.motId);
+        res.mots[index] = { ...res.mots[index], ...tempFetchMot };
+    }
+
+    if (DEBUG.gen) console.log(res);
+    return res;
 }
 
-//FIXME: ora non funziona piu perchè la lista include anche i trips che sono alfanumerici
-async function selectHandler(e) {
-    disableOptionSelected(e);
-    if (DEBUG) console.log(e);
-
-    if ($(e.target).val() == undefined || $(e.target).val() == "") return;
-
-    let elemDispatcherId = "#"+$(e.target).attr("id");
-    let selData = parseSelValIntoId($(e.target).val());
-    if (!selData) { btAlert("C'è stato un errore con gli idla finestra di selezione mezzi", ALERT_COLOR.red); return;}
-    let dbData = null;
-    switch (selData.type) {
-        case "MOT":
-            await getMotData(selData.id);
-            dbData = bData.motData;
-            break;
-
-        case "TRIP":
-            await getTripData(selData.id);
-            dbData = bData.tripData;
-            if (!Array.isArray(dbData)) {
-                btAlert("Errore, dati trip in formato non valido", ALERT_COLOR.red);
-                break;
-            }
-            dbData = [];
-            dbTripData.forEach(async (element) => {
-                await getMotData(element.motId)
-                dbData.push({...bData.tripData, km:element.kmTrav});
-            });
-            
-            break;
-    
-        default:
-            btAlert("Errore, selezionare due mezzi di trasporto o viaggi validi", ALERT_COLOR.red);
-            return;
-    }
-    if (dbData == null) {
-        btAlert("Errore, selezionare due mezzi di trasporto o viaggi validi", ALERT_COLOR.red);
-        return;
-    }
-    switch (elemDispatcherId) {
-        case DOM_IDS.selLeft:
-            bData.challengeData = [];
-            bData.challengeData.push(dbData);
-            break;
-
-        case DOM_IDS.selRight:
-            if (bData.challengeData.length == 2) bData.challengeData.pop();
-            bData.challengeData.push(dbData);
-            break;
-    
-        default:
-            btAlert("C'è stato un errore con la finestra di selezione mezzi", ALERT_COLOR.red);
-            return;
-    }
-
-    //selezionati due elementi
-    if (bData.challengeData.length == 2) {
-        writeCompareMotsData(bData.challengeData);
-    }
+function CreateSelOptions(data) {
+    let selectHtmlControllers = [$(HTML_ELEM.selectLeftEl), $(HTML_ELEM.selectRigthEl)];
+    selectHtmlControllers.forEach(function (value) {
+        value.empty();
+        $('<option>', {
+            text: "",
+            selected: true
+        }).appendTo(value);
+    });
+    if (data == undefined || data == null) return;
+    data.forEach(function (value) {
+        $("<option>", {
+            value: value.id,
+            text: value.name,
+        }).appendTo(selectHtmlControllers);
+    });
 }
 
-//FIXME: passare alla funzione writeCompareMotsData il container DOM dove inserire i dati del mot o del trip
-//TODO: create un template di tabella VS (destra e sinistra [si, le cose cambiano])
-function writeCompareMotsData(dataComparison) {
-    //index == 0 ==> prima colonna selezionata, sta sulla sinistra(left)
-    //dataComparison.length ==> 2: due colonne da processare
-    $(`${DOM_IDS.challengeTabColumnId}${0}`).empty();
-    $(`${DOM_IDS.challengeTabColumnId}${1}`).empty();
-
-    for (let index = 0; index < dataComparison.length; index++) {
-        if (Array.isArray(dataComparison[index])) {
-            for (const iterator of dataComparison[index]) {
-                $(`${DOM_IDS.challengeTabColumnId}${index}`).append($(assembleDomForMot(iterator, index == 0)));
-            }
-        }
-        else {
-            $(`${DOM_IDS.challengeTabColumnId}${index}`).append($(assembleDomForMot(dataComparison[index], index == 0)));
-        }
-    }
-    $(DOM_IDS.spanVsNameL).text($(`${DOM_IDS.selLeft} > [value=${$(DOM_IDS.selLeft).val()}]`).text());
-    $(DOM_IDS.spanVsNameR).text($(`${DOM_IDS.selRight} > [value=${$(DOM_IDS.selRight).val()}]`).text());
-}
-
-function assembleDomForMot(data, left = true) {
+function CreateComparisonColumn(data) {
     const motSpecNames = {
         name: "Nome",
         gCO2PerKm: "Grammi di CO2 per KM",
@@ -282,137 +233,81 @@ function assembleDomForMot(data, left = true) {
         },
         kilometerPerUnit: "Km percorsi per unità di consumo del carburante",
         subscription: "Abbonamento [€]",
-        ticket: "Biglietto [€]"
+        ticket: "Biglietto [€]",
+        kmTrav: "KM percorsi",
     };
 
-    let htmlElem = $("<div>", { class: "row" });
-    let htmlUl = $("<ul>")
+    // let data = {
+    //     type: element.charAt(0),
+    //     id: parseInt(element.slice(1, element.length)),
+    //     pos: key,
+    //     data: {mots:[]},
+    // };
 
-    for (const key in data) {
-        if (Object.hasOwnProperty.call(data, key)) {
-            const element = data[key];
-            if (element == null) continue;
-            if (key == "imgUrl") {
-                let imgCont = $("<div>", {
-                    class: `col-6 order-${left - 1 ? "0" : "1"}`
-                });
+    let rootElements = [];
+    for (let index = 0; index < data.data.mots.length; index++) {
+        const mot = data.data.mots[index];
 
-                imgCont.append(
-                    $("<img>",{
+        let rootElem = $("<div>", {
+            class: "row g-3 mb-3",
+        });
+        let imgCont = $("<div>", {
+            class: `col-md-6 col-sm-12 order-md-${data.pos == "selL" ? 1:0} order-sm-0`
+        });
+        let ulCont = $("<div>", {
+            class: `col-md-6 col-sm-12 order-md-${data.pos == "selL" ? 0:1} order-sm-1`
+        });
+        let liCont = $("<ul>", {
+            class: "list-group"
+        });
+
+        for (const key in mot) {
+            if (Object.hasOwnProperty.call(mot, key)) {
+                const element = mot[key];
+                if (element == null || key == "motId") continue;
+                if (key == "imgUrl") {
+                    $("<img>", {
                         class: "img-fluid rounded-2",
                         src: element,
-                        alt: "immaginen <"
-                    })
-                );
-                htmlElem.append(imgCont);
-                continue;
-            }
+                        alt: "mot image"
+                    }).appendTo(imgCont);
+                    continue;
+                }
 
-            let textItem = "";
-            if (key == "fuel" || key == "fuelConsumptionUnit") {
-                textItem = `${motSpecNames[key]["name"]} : ${motSpecNames[key]["types"][element]}`;
-            }
-            else {
-                textItem = `${motSpecNames[key]} : ${element}`;
-            }
-            htmlUl.append(
+                let textItem = "";
+                if (key == "fuel" || key == "fuelConsumptionUnit") {
+                    textItem = `${motSpecNames[key]["name"]} : ${motSpecNames[key]["types"][element]}`;
+                }
+                else {
+                    textItem = `${motSpecNames[key]} : ${element}`;
+                }
                 $("<li>", {
-                    text: textItem
-                })
-            );
+                    text: textItem,
+                    class: "list-group-item",
+                }).appendTo(liCont)
+            }
+        }
+        liCont.appendTo(ulCont)
+        imgCont.appendTo(rootElem);
+        ulCont.appendTo(rootElem);
+        rootElements.push(rootElem);
+        if (index < data.data.mots.length - 1) {
+            rootElements.push($("<hr>", {
+                class: "w-50 text-light m-auto mb-3",
+            }));
         }
     }
-
-    htmlElem.append(
-        $("<div>", {
-            class: `col-6 order-${left - 1 ? "1" : "0"}`
-        }).append(htmlUl)
-    );
-
-    return htmlElem;
+    return rootElements;
 }
 
-//FIXME: vecchia funzine da cancellare
-function getMotsDetails(e) {
-    disableOptionSelected(e);
-
-    const motIds = [
-        parseInt($(DOM_IDS.selLeft).val()),
-        parseInt($(DOM_IDS.selRight).val())
-    ];
-
-    if (isNaN(motIds[0]) || isNaN(motIds[1])) {
-        btAlert("Select two means of trasportation to start!", ALERT_COLOR.yellow);
-        return;
-    }
-    if (motIds[0] == motIds[1]) {
-        btAlert("Error, you can't compare two identical means of trasportation!", ALERT_COLOR.red);
-        return;
-    }
-
-    $(DOM_IDS.listDataMotL).empty();
-    $(DOM_IDS.listDataMotR).empty();
-    bData.mots = [];
-
-    for (let index = 0; index < motIds.length; index++) {
-        let options = { ...AJAX_DEF_OPT };
-        options.url = AJAX_DEF_OPT.url + "MOT-mot&id=" + motIds[index];
-
-        $.ajax(options)
-            .done(function (data, textStatus, jqXHR) {
-                let jsonData = JSON.parse(data);
-                if (jsonData == undefined) {btAlert("Errore nel ricevere la risposta dal server", ALERT_COLOR.red); return;}
-                if (DEBUG) console.log(jsonData);
-
-                bData.mots.push(jsonData);
-                jsonData.first = index == 0
-                //FIXME: non scalabile, nel caso di tre colonne verifico 3 indici ??
-                writeCompareMotsData(jsonData);
-            })
-            .fail(function (jqXHR, textStatus, errorThrown) {
-                if (DEBUG) console.log(jqXHR, "\n\n", textStatus, "\n\n", errorThrown);
-                let errMsg = JSON.parse(jqXHR.responseText);
-                if (errMsg == undefined) return;
-                btAlert(errMsg.message, ALERT_COLOR.red);
-                return;
-            });
-    }
-}
-
-function fillUiSelect(data) {
-    $(DOM_IDS.selLeft).empty().append($('<option>', {
-        text: "",
-        selected: true
-    }));
-    $(DOM_IDS.selRight).empty().append($('<option>', {
-        text: "",
-        selected: true
-    }));
-    if (data == undefined || data == null) return;
-    data.forEach((value) => {
-        $(DOM_IDS.selLeft).append(
-            $("<option>", {
-                value: value.id,
-                text: value.name,
-            })
-        );
-        $(DOM_IDS.selRight).append(
-            $("<option>", {
-                value: value.id,
-                text: value.name,
-            })
-        );
-    });
-}
-
-function fillTripMotSelect(dataSelect, selNum = NaN) {
+function FillTripMotSelect(dataSelect, selNum = NaN) {
     if (selNum == undefined) return;
     let queryString = "";
     if (isNaN(selNum)) {
-        queryString = DOM_IDS.selectTripMots;
+        queryString = HTML_ELEM.selectTripMots;
     }
     else {
-        queryString = `[selnum=${selNum}] > ${DOM_IDS.selectTripMots}`
+        queryString = `[selnum=${selNum}] > ${HTML_ELEM.selectTripMots}`
     }
 
     $(queryString).empty().append($('<option>', {
@@ -421,30 +316,109 @@ function fillTripMotSelect(dataSelect, selNum = NaN) {
     }));
     if (dataSelect == undefined || dataSelect == null) return;
     dataSelect.forEach((value) => {
+        if (value.id.charAt(0) == "T") return;
         $(queryString).append(
             $("<option>", {
-                value: value.id,
+                value: value.id.slice(1, value.id.length),
                 text: value.name,
             })
         );
     });
 }
 
-function disableOptionSelected(e) {
-    let selId = ("#" + e.target.id) == DOM_IDS.selLeft ? DOM_IDS.selRight : DOM_IDS.selLeft;
-    let selVal = e.target.value;
+async function FillSelectEventHandler(e) {
+    let motTripDatas = await GetListMot_Trip();
+    if (motTripDatas == null) {
+        btAlert("Errore, imporribile ottenere i dati dal server", ALERT_COL.red);
+        return;
+    }
+    if (motTripDatas.error) {
+        btAlert(motTripDatas.message, ALERT_COL.red);
+        return;
+    }
 
-    $(`${selId} > *`).attr("disabled", false);
-    $(`${selId} > [value="${selVal}"]`).attr("disabled", true);
+    CreateSelOptions(motTripDatas);
+    listMot_Trips = motTripDatas;
+    WriteQuery(QUERIES.selectBox, HTML_ELEM.queryMot);
 }
 
+async function SelectEventHandler(e) {
+    let selectedValue = $(e.target).val();
 
+    let oppositeElem = `#${$(e.target).attr("id")}` == HTML_ELEM.selectLeftEl ? HTML_ELEM.selectRigthEl : HTML_ELEM.selectLeftEl;
+    $(`${oppositeElem} > *`).attr("disabled", false);
+    WriteQuery("", HTML_ELEM.queryMot);
 
-function createTripMot() {
-    const selTripMotTemplate = `<div class="row row-cols-auto align-items-end" id="trip-mots-row-${bData.selNum}">
-                                    <div class="col-md-7 col-sm-12" selnum="${bData.selNum}">
+    for (const key in selectedItemsIds) {
+        if (Object.hasOwnProperty.call(selectedItemsIds, key)) {
+            $(HTML_ELEM[key]).empty()
+        }
+    }
+
+    if (selectedValue != undefined && selectedValue != "") {
+        $(`${oppositeElem} > [value=${$(e.target).val()}]`).attr("disabled", true);
+
+        selectedItemsIds[$(e.target).attr("id")] = selectedValue;
+    }
+    else {
+        selectedItemsIds[$(e.target).attr("id")] = null;
+        return;
+    }
+
+    if (selectedItemsIds.selL != null && selectedItemsIds.selL != "" && selectedItemsIds.selR != null && selectedItemsIds.selR != "") {
+        for (const key in selectedItemsIds) {
+            if (Object.hasOwnProperty.call(selectedItemsIds, key)) {
+                const element = selectedItemsIds[key];
+                if (isNaN(parseInt(element.slice(1, element.length)))) {
+                    btAlert("Il mezzo o viaggio selezionato ha un identificativo errato", ALERT_COL.red);
+                    return;
+                }
+                let elemData = {
+                    type: element.charAt(0),
+                    //Remove letter M or L
+                    id: parseInt(element.slice(1, element.length)),
+                    pos: key,
+                    data: null,
+                };
+                if (elemData.type == PREFIXS.mot) {
+                    let apiVal = await GetMotData(elemData.id);
+                    if(apiVal != null && !apiVal.error) {
+                        elemData.data = {mots: [apiVal]};
+                        WriteQuery(`${key == "selL" ? "--select di sinistra" : "--select di destra"}\n${QUERIES.vsMot}${elemData.id}`, HTML_ELEM.queryMot, true);
+                    }
+                    else {
+                        btAlert("Id mot errato: "+elemData,id, ALERT_COL.red);
+                        return;
+                    }
+                }
+                else if (elemData.type == PREFIXS.trip) {
+                    let apiVal = await GetTripData(elemData.id);
+                    if (apiVal != null && !apiVal.error) {
+                        elemData.data = apiVal;
+                        WriteQuery(`${key == "selL" ? "--select di sinistra" : "--select di destra"}\n${QUERIES.vsTripName}${elemData.id}\n${QUERIES.vsTripData}${elemData.id}`, HTML_ELEM.queryMot, true);
+                    }
+                    else {
+                        btAlert("Id trip errato: " + elemData, id, ALERT_COL.red);
+                        return;
+                    }
+                }
+                else {
+                    btAlert("Tipo del mezzo/viaggio inaspettato", ALERT_COL.red);
+                    return;
+                }
+
+                console.log(elemData);
+                $(HTML_ELEM[key]).append(CreateComparisonColumn(elemData));
+            }
+        }
+    }
+}
+
+function CreateTripMotEventHandler() {
+    const selTripMotTemplate = `<div class="row row-cols-auto align-items-end" id="trip-mots-row-${tripMotsFieldCount}">
+                                    <div class="col-md-7 col-sm-12" selnum="${tripMotsFieldCount}">
                                         <label class="form-label" for="motUsed">Mezzo</label>
-                                        <select class="form-select trip-mots">
+                                        <select class="form-select trip-mots" reqired>
                                         </select>
                                     </div>
                                     <div class="col-md-3 col-sm-6">
@@ -452,88 +426,96 @@ function createTripMot() {
                                         <input type="number" min="1" class="form-control trip-mots-km" value="1">
                                     </div>
                                     <div class="col-md-2 col-sm-6 top-0">
-                                        <button type="button" class="btn btn-danger btn-delete-trip" id="tripBtn-${bData.selNum}" value="${bData.selNum}">X</button>
+                                        <button type="button" class="btn btn-danger btn-delete-trip" id="tripBtn-${tripMotsFieldCount}" value="${tripMotsFieldCount}">X</button>
                                     </div>
                                 </div>`;
-    $(DOM_IDS.tripMotsContainer).append(selTripMotTemplate);
-    $(DOM_IDS.btnDeleteTripMot + bData.selNum).on("click", deleteTripMot);
-    fillTripMotSelect(bData.listMots, bData.selNum);
-    bData.selNum++;
+    $(HTML_ELEM.tripMotsContainer).append(selTripMotTemplate);
+    $(HTML_ELEM.btnDeleteTripMot + tripMotsFieldCount).on("click", DeleteTripMotEventHandler);
+    FillTripMotSelect(listMot_Trips, tripMotsFieldCount);
+    tripMotsFieldCount++;
 }
 
-function deleteTripMot(e) {
-    if(DEBUG) console.log(e);
+function DeleteTripMotEventHandler(e) {
+    if (DEBUG) console.log(e);
     $(e.target).off();
-    $(DOM_IDS.tripMotContainer + e.target.value).remove();
+    $(HTML_ELEM.tripMotContainer + e.target.value).remove();
 }
 
-function resetTripTab() {
-    $(DOM_IDS.inputTripName).val("");
-    $(DOM_IDS.btnDeleteTripMots).each(function(i, elem) {
+function ResetTripTabEventHandler() {
+    $(HTML_ELEM.inputTripName).val("");
+    $(HTML_ELEM.btnDeleteTripMots).each(function (i, elem) {
         $(elem).trigger("click");
     });
-    bData.selNum = 0;
-    createTripMot();
+    tripMotsFieldCount = 0;
+    CreateTripMotEventHandler();
 }
 
-function addTrip() {
+function AddTripEventHandler(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
     let error = {
         state: false,
         message: []
     };
     let trip = {
-        name: $(DOM_IDS.inputTripName).val(),
+        name: $(HTML_ELEM.inputTripName).val(),
         mots: []
     };
-    $(DOM_IDS.selectTripMots).each(function (i, el) {
+    if (trip.name == undefined || trip.name == "") {
+        btAlert("Inserisci il nome del Viaggio", ALERT_COL.red);
+        return;
+    }
+    $(HTML_ELEM.selectTripMots).each(function (i, el) {
         let idVal = parseInt(el.value);
         if (!isNaN(idVal)) {
-            let kmVal = parseInt($(DOM_IDS.inputTripMotsKm).eq(i).val());
+                    //Remove letter M or L
+            let kmVal = parseInt($(HTML_ELEM.inputTripMotsKm).eq(i).val());
             if (!isNaN(kmVal) && kmVal > 0) {
                 let id_km = [idVal, kmVal];
                 trip.mots.push(id_km);
             }
             else {
                 error.state = true;
-                error.message.push("Insert a valid KM number");
+                error.message.push("Inserisci un numero valido nei campi KM");
             }
         }
         else {
             error.state = true;
-            error.message.push("Select a mot from the trip window");
+            error.message.push("Seleziona un mezzo di trasporto dai campi a tendina");
         }
     });
-    if(error.state) {
-        error.message.forEach(function(value) {
-            btAlert(value, ALERT_COLOR.red);
+    if (error.state) {
+        error.message.forEach(function (value) {
+            btAlert(value, ALERT_COL.red);
         });
         return;
     }
-    if(DEBUG) console.log(trip);
+    if (DEBUG) console.log(trip);
 
-    let options = { ...AJAX_DEF_OPT };
+    let options = { ...AJAX_OPT };
     options.method = "POST";
     options.contentType = "application/json";
     options.url += "Trip-create";
     options.data = JSON.stringify(trip);
-    console.log(options );
+    console.log(options);
+    WriteQuery(`${QUERIES.addTripName}('${trip.name}')\n${QUERIES.addTripData}${trip.mots.map((val) => { return `(${val})`; })}`, HTML_ELEM.queryTrip);
 
-    $.ajax(options)
-        .done(function (data, textStatus, jqXHR) {
-            let jsonData = JSON.parse(data);
-            if (jsonData == undefined) {btAlert("Errore nel ricevere la risposta dal server", ALERT_COLOR.red); return;}
-            if (DEBUG) console.log(jsonData);
+    // $.ajax(options)
+    //     .done(function (data, textStatus, jqXHR) {
+    //         let jsonData = JSON.parse(data);
+    //         if (jsonData == undefined) { btAlert("Errore nel ricevere la risposta dal server", ALERT_COL.red); return; }
+    //         if (DEBUG) console.log(jsonData);
 
-            resetTripTab();
-            btAlert(jsonData.message, ALERT_COLOR.green);
-        })
-        .fail(function (jqXHR, textStatus, errorThrown) {
-            if (DEBUG) console.log(jqXHR, "\n\n", textStatus, "\n\n", errorThrown);
-            let errMsg = JSON.parse(jqXHR.responseText);
-            if (errMsg == undefined) return;
-            btAlert(errMsg.message, ALERT_COLOR.red);
-        });
+    //         ResetTripTabEventHandler();
+    //         FillSelectEventHandler(null);
+    //         WriteQuery(`${QUERIES.addTripName}('${trip.name}')\n${QUERIES.addTripData}${trip.mots.map((val) => {return `(${val})`;})}`, HTML_ELEM.queryTrip);
+    //         btAlert(jsonData.message, ALERT_COL.gre);
+    //     })
+    //     .fail(function (jqXHR, textStatus, errorThrown) {
+    //         if (DEBUG) console.log(jqXHR, "\n\n", textStatus, "\n\n", errorThrown);
+    //         let errMsg = JSON.parse(jqXHR.responseText);
+    //         if (errMsg == undefined) return;
+    //         btAlert(errMsg.message, ALERT_COL.red);
+    //     });
 }
-
-//TODO: manca l'AJAX in POST richiamato dal pulsande aggiungi viaggio
-//TODO: riempire tutti i riquadri per le query e animarli in base ai controlli che cambiano
