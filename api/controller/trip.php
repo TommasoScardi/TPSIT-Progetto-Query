@@ -16,6 +16,17 @@ function getNamesList(mysqli $db)
 
 function getTrip(mysqli $db, int $motId)
 {
+    $stmt = $db->prepare("SELECT name from queryProject.trip where id = ?");
+    $stmt->bind_param("i", $motId);
+    $stmt->execute();
+    $resultSet = $stmt->get_result();
+    if ($resultSet->num_rows <= 0) {
+        return false;
+    }
+    $tripName = $resultSet->fetch_array()[0]; //name col
+    $stmt->close();
+    $stmt= null;
+
     $stmt = $db->prepare("SELECT id_mot, km_traveled
                             FROM queryProject.trip t, queryProject.trip_mot tm
                             WHERE t.id = tm.id_trip AND t.id = ?;");
@@ -23,23 +34,24 @@ function getTrip(mysqli $db, int $motId)
     $stmt->execute();
     $resultSet = $stmt->get_result();
 
-    if ($resultSet->num_rows > 0) {
-        $tripMots = array();
-        while ($res = $resultSet->fetch_assoc()) {
-            $jsonWrapper = new stdClass();
-            //$jsonWrapper->tripName = $res["name"];
-            $jsonWrapper->motId = $res["id_mot"];
-            $jsonWrapper->kmTrav = $res["km_traveled"];
-
-            array_push($tripMots ,$jsonWrapper);
-        }
-
-        $stmt->close();
-        return json_encode($tripMots);
-    }
-    else {
+    if ($resultSet->num_rows <= 0) {
         return false;
     }
+    $tripMots = array();
+    while ($res = $resultSet->fetch_assoc()) {
+        $jsonWrapper = new stdClass();
+        //$jsonWrapper->tripName = $res["name"];
+        $jsonWrapper->motId = $res["id_mot"];
+        $jsonWrapper->kmTrav = $res["km_traveled"];
+
+        array_push($tripMots ,$jsonWrapper);
+    }
+
+    $stmt->close();
+    $tripData = new stdClass();
+    $tripData->name = $tripName;
+    $tripData->mots = $tripMots;
+    return json_encode($tripData);
 }
 
 function getTripMots(mysqli $db, int $motId)
