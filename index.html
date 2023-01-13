@@ -33,7 +33,7 @@
                 <div class="bg-secondary rounded-1 p-3">
                     <h3 class="text-center">Compara mezzi di trasporto</h3>
                     <p class="text-center">seleziona due elementi per cominciare</p>
-                    <div class="row">
+                    <div class="row align-items-end">
                         <div class="col-5">
                             <select class="form-select" size="7" id="selL">
                                 <option selected>Choose...</option>
@@ -62,37 +62,37 @@
             <div>
                 <h2 class="text-center"><span id="motNameL"></span> VS <span id="motNameR"></span></h2>
                 <div class="row">
-                    <div class="col-md-6 col-sm-12" id="column-0">
+                    <div class="col-6" id="colL">
                         <!-- TEMPLATE -->
-                        <div class="row">
-                                <div class="col-6 order-1">
+                        <div class="row g-3">
+                                <div class="col-md-6 col-sm-12 order-md-1 order-sm-0">
                                     <img src="https://wallpaperaccess.com/full/3238251.jpg" class="img-fluid float-end rounded-2" alt="..." id="imgMotL">
                                 </div>
-                                <div class="col-6 order-0">
-                                    <ul id="listDataMotR">
-                                        <li>Abc</li>
-                                        <li>Def</li>
-                                        <li>Ghi</li>
-                                        <li>Lmn</li>
+                                <div class="col-md-6 col-sm-12 order-md-0 order-sm-1">
+                                    <ul id="listDataMotR" class="list-group">
+                                        <li class="list-group-item active">Abc</li>
+                                        <li class="list-group-item">Def</li>
+                                        <li class="list-group-item">Ghi</li>
+                                        <li class="list-group-item">Lmn</li>
                                     </ul>
                                 </div>
                                 <!-- <hr class="w-50 text-warning m-auto my-2"> -->
                         </div>
                         <!-- END TEMPLATE -->
                     </div>
-                    <div class="col-md-6 col-sm-12" id="column-1">
+                    <div class="col-6" id="colR">
                         <!-- TEMPLATE -->
-                        <div class="row">
-                                <div class="col-6 order-0">
+                        <div class="row g-3">
+                                <div class="col-md-6 col-sm-12 order-0">
                                     <img src="https://www.epaddock.it/wp-content/uploads/2022/12/Super-soco-CUmini-2022-1200x800-1.jpg"
                                         class="img-fluid rounded-2" alt="..." id="imgMotL">
                                 </div>
-                                <div class="col-6 order-1">
-                                    <ul id="listDataMotR">
-                                        <li>Abc</li>
-                                        <li>Def</li>
-                                        <li>Ghi</li>
-                                        <li>Lmn</li>
+                                <div class="col-md-6 col-sm-12 order-1">
+                                    <ul id="listDataMotR" class="list-group">
+                                        <li class="list-group-item active">Abc</li>
+                                        <li class="list-group-item">Def</li>
+                                        <li class="list-group-item">Ghi</li>
+                                        <li class="list-group-item">Lmn</li>
                                     </ul>
                                 </div>
                         </div>
@@ -160,7 +160,8 @@
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.3/dist/jquery.min.js"></script>
     <script src="static/js/prism.js"></script>
     <script src="static/js/btAlert.js"></script>
-    <script src="static/js/app.js"></script>
+    <!-- <script src="static/js/app.js"></script> -->
+    <script src="static/js/newApp.js"></script>
 </body>
 
 </html>
