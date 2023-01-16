@@ -499,23 +499,22 @@ function AddTripEventHandler(e) {
     options.url += "Trip-create";
     options.data = JSON.stringify(trip);
     console.log(options);
-    WriteQuery(`${QUERIES.addTripName}('${trip.name}')\n${QUERIES.addTripData}${trip.mots.map((val) => { return `(${val})`; })}`, HTML_ELEM.queryTrip);
+    
+    $.ajax(options)
+        .done(function (data, textStatus, jqXHR) {
+            let jsonData = JSON.parse(data);
+            if (jsonData == undefined) { btAlert("Errore nel ricevere la risposta dal server", ALERT_COL.red); return; }
+            if (DEBUG) console.log(jsonData);
 
-    // $.ajax(options)
-    //     .done(function (data, textStatus, jqXHR) {
-    //         let jsonData = JSON.parse(data);
-    //         if (jsonData == undefined) { btAlert("Errore nel ricevere la risposta dal server", ALERT_COL.red); return; }
-    //         if (DEBUG) console.log(jsonData);
-
-    //         ResetTripTabEventHandler();
-    //         FillSelectEventHandler(null);
-    //         WriteQuery(`${QUERIES.addTripName}('${trip.name}')\n${QUERIES.addTripData}${trip.mots.map((val) => {return `(${val})`;})}`, HTML_ELEM.queryTrip);
-    //         btAlert(jsonData.message, ALERT_COL.gre);
-    //     })
-    //     .fail(function (jqXHR, textStatus, errorThrown) {
-    //         if (DEBUG) console.log(jqXHR, "\n\n", textStatus, "\n\n", errorThrown);
-    //         let errMsg = JSON.parse(jqXHR.responseText);
-    //         if (errMsg == undefined) return;
-    //         btAlert(errMsg.message, ALERT_COL.red);
-    //     });
+            ResetTripTabEventHandler();
+            FillSelectEventHandler(null);
+            WriteQuery(`${QUERIES.addTripName}('${trip.name}')\n${QUERIES.addTripData}${trip.mots.map((val) => {return `(${val})`;})}`, HTML_ELEM.queryTrip);
+            btAlert(jsonData.message, ALERT_COL.gre);
+        })
+        .fail(function (jqXHR, textStatus, errorThrown) {
+            if (DEBUG) console.log(jqXHR, "\n\n", textStatus, "\n\n", errorThrown);
+            let errMsg = JSON.parse(jqXHR.responseText);
+            if (errMsg == undefined) return;
+            btAlert(errMsg.message, ALERT_COL.red);
+        });
 }
